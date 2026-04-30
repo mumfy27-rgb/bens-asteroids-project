@@ -1,4 +1,8 @@
-# Python-generated files
+__pycache__/
+pygame-env/
+*.pyc
+*.log
+*.jsonl# Python-generated files
 __pycache__/
 *.py[oc]
 build/
