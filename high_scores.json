@@ -8,6 +8,10 @@
         "score": 7000
     },
     {
+        "name": "DFWE",
+        "score": 4800
+    },
+    {
         "name": "BEND",
         "score": 4200
     },
@@ -34,9 +38,5 @@
     {
         "name": "BHBV",
         "score": 1700
-    },
-    {
-        "name": "ABYY",
-        "score": 1400
     }
 ]
