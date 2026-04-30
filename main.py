@@ -10,26 +10,47 @@ from asteroidfield import AsteroidField
 from shot import Shot
 
 
+MENU = "menu"
+SETTINGS = "settings"
+PLAYING = "playing"
+
+
+def draw_menu(screen, options, selected_index, font):
+    for i, option in enumerate(options):
+        color = "yellow" if i == selected_index else "white"
+        text = font.render(option, True, color)
+        rect = text.get_rect(center=(SCREEN_WIDTH / 2, 250 + i * 70))
+        screen.blit(text, rect)
+
+
 def main():
     pygame.init()
     pygame.mixer.init()
+
+    game_state = MENU
+    menu_index = 0
+    settings_index = 0
+
+    background_music_on = True
+    game_sounds_on = True
+
+    menu_options = ["Start Game", "Settings", "Quit"]
 
     clock = pygame.time.Clock()
     dt = 0
 
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
-    # ✅ LOAD BACKGROUND (fixed indentation)
     background = pygame.image.load("background.png").convert()
     background = pygame.transform.scale(background, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
     font = pygame.font.SysFont(None, 36)
+
     score = 0
     lives = 3
     game_over = False
     invincible_timer = 0
 
-    # 🔊 Load sounds
     shoot_sound = pygame.mixer.Sound("shoot.wav")
     explosion_sound = pygame.mixer.Sound("explosion.wav")
 
@@ -41,6 +62,19 @@ def main():
     pygame.mixer.music.play(-1)
 
     was_shooting = False
+
+    updatable = pygame.sprite.Group()
+    drawable = pygame.sprite.Group()
+    asteroids = pygame.sprite.Group()
+    shots = pygame.sprite.Group()
+
+    Player.containers = (updatable, drawable)
+    Asteroid.containers = (asteroids, updatable, drawable)
+    AsteroidField.containers = (updatable,)
+    Shot.containers = (shots, updatable, drawable)
+
+    player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+    AsteroidField()
 
     def reset_game():
         nonlocal score, lives, game_over, invincible_timer
@@ -61,19 +95,6 @@ def main():
 
         AsteroidField()
 
-    updatable = pygame.sprite.Group()
-    drawable = pygame.sprite.Group()
-    asteroids = pygame.sprite.Group()
-    shots = pygame.sprite.Group()
-
-    Player.containers = (updatable, drawable)
-    Asteroid.containers = (asteroids, updatable, drawable)
-    AsteroidField.containers = (updatable,)
-    Shot.containers = (shots, updatable, drawable)
-
-    player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
-    AsteroidField()
-
     print(f"Starting Asteroids with pygame version: {pygame.version.ver}")
 
     while True:
@@ -84,62 +105,128 @@ def main():
                 return
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and game_over:
-                    reset_game()
+
+                # ---------- MENU ----------
+                if game_state == MENU:
+                    if event.key == pygame.K_UP:
+                        menu_index -= 1
+
+                    if event.key == pygame.K_DOWN:
+                        menu_index += 1
+
+                    menu_index %= len(menu_options)
+
+                    if event.key == pygame.K_RETURN:
+                        if menu_options[menu_index] == "Start Game":
+                            game_state = PLAYING
+
+                        elif menu_options[menu_index] == "Settings":
+                            game_state = SETTINGS
+
+                        elif menu_options[menu_index] == "Quit":
+                            return
+
+                # ---------- SETTINGS ----------
+                elif game_state == SETTINGS:
+                    if event.key == pygame.K_UP:
+                        settings_index -= 1
+
+                    if event.key == pygame.K_DOWN:
+                        settings_index += 1
+
+                    settings_index %= 3
+
+                    if event.key == pygame.K_RETURN:
+                        if settings_index == 0:
+                            background_music_on = not background_music_on
+
+                            if background_music_on:
+                                pygame.mixer.music.play(-1)
+                            else:
+                                pygame.mixer.music.stop()
+
+                        elif settings_index == 1:
+                            game_sounds_on = not game_sounds_on
+
+                        elif settings_index == 2:
+                            game_state = MENU
+
+                # ---------- GAME OVER RESET ----------
+                elif game_state == PLAYING:
+                    if event.key == pygame.K_SPACE and game_over:
+                        reset_game()
 
         keys = pygame.key.get_pressed()
 
-        # 🔊 Shoot sound
-        if keys[pygame.K_SPACE] and not was_shooting and not game_over:
-            shoot_sound.play()
-
-        was_shooting = keys[pygame.K_SPACE]
-
-        # ✅ DRAW BACKGROUND (fixed)
         screen.blit(background, (0, 0))
 
-        if not game_over:
-            updatable.update(dt)
+        # ---------- DRAW MENU ----------
+        if game_state == MENU:
+            draw_menu(screen, menu_options, menu_index, font)
 
-        if invincible_timer > 0:
-            invincible_timer -= dt
+        # ---------- DRAW SETTINGS ----------
+        elif game_state == SETTINGS:
+            settings_options = [
+                f"Background Music: {'ON' if background_music_on else 'OFF'}",
+                f"Game Sounds: {'ON' if game_sounds_on else 'OFF'}",
+                "Back",
+            ]
 
-        if not game_over:
-            for asteroid in asteroids:
-                if asteroid.collides_with(player) and invincible_timer <= 0:
-                    log_event("player_hit")
-                    lives -= 1
-                    invincible_timer = 2
-                    asteroid.kill()
+            draw_menu(screen, settings_options, settings_index, font)
 
-                    if lives <= 0:
-                        print("Game Over")
-                        game_over = True
+        # ---------- PLAY GAME ----------
+        elif game_state == PLAYING:
 
-                for shot in shots:
-                    if asteroid.collides_with(shot):
-                        explosion_sound.play()
-                        log_event("asteroid_shot")
-                        score += 100
-                        asteroid.split()
-                        shot.kill()
+            if keys[pygame.K_SPACE] and not was_shooting and not game_over:
+                if game_sounds_on:
+                    shoot_sound.play()
 
-        for thing in drawable:
-            thing.draw(screen)
+            was_shooting = keys[pygame.K_SPACE]
 
-        score_text = font.render(f"Score: {score}", True, "white")
-        screen.blit(score_text, (20, 20))
+            if not game_over:
+                updatable.update(dt)
 
-        lives_text = font.render(f"Lives: {lives}", True, "white")
-        screen.blit(lives_text, (20, 55))
+            if invincible_timer > 0:
+                invincible_timer -= dt
 
-        if game_over:
-            game_over_text = font.render(
-                "GAME OVER - Press SPACE to restart",
-                True,
-                "white"
-            )
-            screen.blit(game_over_text, (SCREEN_WIDTH / 2 - 250, SCREEN_HEIGHT / 2))
+            if not game_over:
+                for asteroid in asteroids:
+                    if asteroid.collides_with(player) and invincible_timer <= 0:
+                        log_event("player_hit")
+                        lives -= 1
+                        invincible_timer = 2
+                        asteroid.kill()
+
+                        if lives <= 0:
+                            print("Game Over")
+                            game_over = True
+
+                    for shot in shots:
+                        if asteroid.collides_with(shot):
+                            if game_sounds_on:
+                                explosion_sound.play()
+
+                            log_event("asteroid_shot")
+                            score += 100
+                            asteroid.split()
+                            shot.kill()
+
+            for thing in drawable:
+                thing.draw(screen)
+
+            score_text = font.render(f"Score: {score}", True, "white")
+            screen.blit(score_text, (20, 20))
+
+            lives_text = font.render(f"Lives: {lives}", True, "white")
+            screen.blit(lives_text, (20, 55))
+
+            if game_over:
+                game_over_text = font.render(
+                    "GAME OVER - Press SPACE to restart",
+                    True,
+                    "white"
+                )
+                screen.blit(game_over_text, (SCREEN_WIDTH / 2 - 250, SCREEN_HEIGHT / 2))
 
         pygame.display.flip()
 
