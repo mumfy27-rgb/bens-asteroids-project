@@ -41,8 +41,7 @@ class Asteroid(CircleShape):
             screen,
             (200, 200, 200),
             self.position,
-            self.radius,
-            LINE_WIDTH
+            self.radius
         )
 
     def update(self, dt):
