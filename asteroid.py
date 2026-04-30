@@ -15,9 +15,15 @@ class Asteroid(CircleShape):
         image_path = random.choice(ASTEROID_IMAGES)
         self.image = pygame.image.load(image_path).convert_alpha()
 
+        # Asteroids get visually bigger the longer the player survives
+        survival_seconds = pygame.time.get_ticks() / 1000
+        growth_scale = 1 + min(survival_seconds / 120, 1)
+
+        size = int(radius * 2 * growth_scale)
+
         self.image = pygame.transform.scale(
             self.image,
-            (int(radius * 2), int(radius * 2))
+            (size, size)
         )
 
     def split(self):

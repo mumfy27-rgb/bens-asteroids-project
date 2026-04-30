@@ -1,5 +1,9 @@
 [
     {
+        "name": "WWTF",
+        "score": 13200
+    },
+    {
         "name": "BENS",
         "score": 7000
     },
@@ -34,9 +38,5 @@
     {
         "name": "ABYY",
         "score": 1400
-    },
-    {
-        "name": "BENU",
-        "score": 1300
     }
 ]
