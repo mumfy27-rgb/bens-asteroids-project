@@ -2,6 +2,7 @@ import os
 os.environ["SDL_AUDIODRIVER"] = "pulse"
 
 import pygame
+import json
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT
 from logger import log_state, log_event
 from player import Player
@@ -13,6 +14,8 @@ from shot import Shot
 MENU = "menu"
 SETTINGS = "settings"
 PLAYING = "playing"
+ENTER_HIGH_SCORE = "enter_high_score"
+HIGH_SCORES = "high_scores"
 
 
 def draw_menu(screen, options, selected_index, font):
@@ -23,25 +26,55 @@ def draw_menu(screen, options, selected_index, font):
         screen.blit(text, rect)
 
 
+def load_high_scores():
+    try:
+        with open("high_scores.json", "r") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return []
+
+
+def save_high_scores(high_scores):
+    with open("high_scores.json", "w") as file:
+        json.dump(high_scores, file, indent=4)
+
+
+def add_high_score(name, score):
+    high_scores = load_high_scores()
+
+    high_scores.append({
+        "name": name,
+        "score": score
+    })
+
+    high_scores.sort(key=lambda entry: entry["score"], reverse=True)
+    high_scores = high_scores[:10]
+
+    save_high_scores(high_scores)
+
+
 def main():
+    pygame.mixer.pre_init(44100, -16, 2, 512)
+
     pygame.init()
     pygame.mixer.init()
 
     game_state = MENU
     menu_index = 0
     settings_index = 0
+    player_name = ""
+    score_saved = False
 
     background_music_on = True
     game_sounds_on = True
 
-    menu_options = ["Start Game", "Settings", "Quit"]
+    menu_options = ["Start Game", "Settings", "High Scores", "Quit"]
 
     clock = pygame.time.Clock()
     dt = 0
 
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
-    # -------- BACKGROUNDS --------
     background = pygame.image.load("background.png").convert()
     background = pygame.transform.scale(background, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
@@ -58,7 +91,6 @@ def main():
     game_over = False
     invincible_timer = 0
 
-    # -------- SOUNDS --------
     shoot_sound = pygame.mixer.Sound("shoot.wav")
     explosion_sound = pygame.mixer.Sound("explosion.wav")
 
@@ -71,7 +103,6 @@ def main():
 
     was_shooting = False
 
-    # -------- GROUPS --------
     updatable = pygame.sprite.Group()
     drawable = pygame.sprite.Group()
     asteroids = pygame.sprite.Group()
@@ -106,7 +137,6 @@ def main():
 
     print(f"Starting Asteroids with pygame version: {pygame.version.ver}")
 
-    # -------- GAME LOOP --------
     while True:
         log_state()
 
@@ -116,7 +146,6 @@ def main():
 
             if event.type == pygame.KEYDOWN:
 
-                # -------- MENU --------
                 if game_state == MENU:
                     if event.key == pygame.K_UP:
                         menu_index -= 1
@@ -133,10 +162,12 @@ def main():
                         elif menu_options[menu_index] == "Settings":
                             game_state = SETTINGS
 
+                        elif menu_options[menu_index] == "High Scores":
+                            game_state = HIGH_SCORES
+
                         elif menu_options[menu_index] == "Quit":
                             return
 
-                # -------- SETTINGS --------
                 elif game_state == SETTINGS:
                     if event.key == pygame.K_UP:
                         settings_index -= 1
@@ -151,9 +182,9 @@ def main():
                             background_music_on = not background_music_on
 
                             if background_music_on:
-                                pygame.mixer.music.play(-1)
+                                pygame.mixer.music.unpause()
                             else:
-                                pygame.mixer.music.stop()
+                                pygame.mixer.music.pause()
 
                         elif settings_index == 1:
                             game_sounds_on = not game_sounds_on
@@ -161,15 +192,34 @@ def main():
                         elif settings_index == 2:
                             game_state = MENU
 
-                # -------- RESET --------
                 elif game_state == PLAYING:
                     if event.key == pygame.K_SPACE and game_over:
                         reset_game()
                         game_state = MENU
 
+                elif game_state == ENTER_HIGH_SCORE:
+                    if event.key == pygame.K_BACKSPACE:
+                        player_name = player_name[:-1]
+
+                    elif event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+                        if len(player_name) == 4 and not score_saved:
+                            add_high_score(player_name.upper(), score)
+                            score_saved = True
+                            reset_game()
+                            game_state = HIGH_SCORES
+
+                    else:
+                        letter = event.unicode.upper()
+
+                        if letter.isalpha() and len(player_name) < 4:
+                            player_name += letter
+
+                elif game_state == HIGH_SCORES:
+                    if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER, pygame.K_ESCAPE):
+                        game_state = MENU
+
         keys = pygame.key.get_pressed()
 
-        # -------- DRAW BACKGROUND --------
         if game_state == MENU:
             screen.blit(menu_background, (0, 0))
 
@@ -179,11 +229,15 @@ def main():
         elif game_state == PLAYING:
             screen.blit(background, (0, 0))
 
-        # -------- MENU DRAW --------
+        elif game_state == ENTER_HIGH_SCORE:
+            screen.blit(settings_background, (0, 0))
+
+        elif game_state == HIGH_SCORES:
+            screen.blit(settings_background, (0, 0))
+
         if game_state == MENU:
             draw_menu(screen, menu_options, menu_index, font)
 
-        # -------- SETTINGS DRAW --------
         elif game_state == SETTINGS:
             settings_options = [
                 f"Background Music: {'ON' if background_music_on else 'OFF'}",
@@ -193,7 +247,43 @@ def main():
 
             draw_menu(screen, settings_options, settings_index, font)
 
-        # -------- GAME --------
+        elif game_state == ENTER_HIGH_SCORE:
+            title = font.render("NEW HIGH SCORE!", True, "yellow")
+            screen.blit(title, (SCREEN_WIDTH / 2 - 140, 180))
+
+            score_text = font.render(f"Score: {score}", True, "white")
+            screen.blit(score_text, (SCREEN_WIDTH / 2 - 70, 230))
+
+            name_text = font.render(f"Enter Name: {player_name}", True, "white")
+            screen.blit(name_text, (SCREEN_WIDTH / 2 - 140, 290))
+
+            help_text = font.render("Type 4 letters then ENTER", True, "white")
+            screen.blit(help_text, (SCREEN_WIDTH / 2 - 190, 350))
+
+        elif game_state == HIGH_SCORES:
+            high_scores = load_high_scores()
+
+            title = font.render("HIGH SCORES", True, "yellow")
+            screen.blit(title, (SCREEN_WIDTH / 2 - 120, 120))
+
+            y = 200
+
+            if len(high_scores) == 0:
+                empty_text = font.render("No scores yet", True, "white")
+                screen.blit(empty_text, (SCREEN_WIDTH / 2 - 90, y))
+            else:
+                for i, entry in enumerate(high_scores):
+                    line = font.render(
+                        f"{i + 1}. {entry['name']} - {entry['score']}",
+                        True,
+                        "white"
+                    )
+                    screen.blit(line, (SCREEN_WIDTH / 2 - 130, y))
+                    y += 40
+
+            back_text = font.render("Press ENTER or ESC to return", True, "white")
+            screen.blit(back_text, (SCREEN_WIDTH / 2 - 190, 620))
+
         elif game_state == PLAYING:
 
             if keys[pygame.K_SPACE] and not was_shooting and not game_over:
@@ -218,6 +308,9 @@ def main():
 
                         if lives <= 0:
                             game_over = True
+                            player_name = ""
+                            score_saved = False
+                            game_state = ENTER_HIGH_SCORE
 
                     for shot in shots:
                         if asteroid.collides_with(shot):
@@ -237,14 +330,6 @@ def main():
 
             lives_text = font.render(f"Lives: {lives}", True, "white")
             screen.blit(lives_text, (20, 55))
-
-            if game_over:
-                game_over_text = font.render(
-                    "GAME OVER - Press SPACE for Menu",
-                    True,
-                    "white"
-                )
-                screen.blit(game_over_text, (SCREEN_WIDTH / 2 - 250, SCREEN_HEIGHT / 2))
 
         pygame.display.flip()
         dt = clock.tick(60) / 1000
