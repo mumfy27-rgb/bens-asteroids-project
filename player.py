@@ -21,8 +21,10 @@ class Player(CircleShape):
         self.rotation = 0
         self.shoot_timer = 0
 
-        self.image = pygame.image.load("ship.png").convert_alpha()
+        # 🚀 Load spaceship image from assets folder
+        self.image = pygame.image.load("assets/images/ship.png").convert_alpha()
 
+        # 🔧 Scale ship bigger
         scale = 3.0
         size = int(50 * scale)
         self.image = pygame.transform.scale(self.image, (size, size))
@@ -31,7 +33,10 @@ class Player(CircleShape):
         if self.shoot_timer > 0:
             return
 
+        # 🔫 Forward direction
         direction = pygame.Vector2(0, -1).rotate(self.rotation)
+
+        # spawn at front of ship
         spawn_pos = self.position + direction * (self.radius + 60)
 
         shot = Shot(spawn_pos.x, spawn_pos.y)
@@ -44,16 +49,14 @@ class Player(CircleShape):
 
         if keys[pygame.K_a]:
             self.rotation -= PLAYER_TURN_SPEED * dt
-
         if keys[pygame.K_d]:
             self.rotation += PLAYER_TURN_SPEED * dt
 
-        # W now moves forward
+        # 🔄 swapped controls (W forward, S backward)
         if keys[pygame.K_w]:
             direction = pygame.Vector2(0, 1).rotate(self.rotation)
             self.position -= direction * PLAYER_SPEED * dt
 
-        # S now moves backward
         if keys[pygame.K_s]:
             direction = pygame.Vector2(0, 1).rotate(self.rotation)
             self.position += direction * PLAYER_SPEED * dt
@@ -64,6 +67,7 @@ class Player(CircleShape):
         if self.shoot_timer > 0:
             self.shoot_timer -= dt
 
+        # 🌍 Screen wrapping
         if self.position.x < 0:
             self.position.x = SCREEN_WIDTH
         elif self.position.x > SCREEN_WIDTH:

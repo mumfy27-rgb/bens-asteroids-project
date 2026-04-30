@@ -75,13 +75,13 @@ def main():
 
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
-    background = pygame.image.load("background.png").convert()
+    background = pygame.image.load("assets/images/background.png").convert()
     background = pygame.transform.scale(background, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
-    menu_background = pygame.image.load("menubackground.png").convert()
+    menu_background = pygame.image.load("assets/images/menubackground.png").convert()
     menu_background = pygame.transform.scale(menu_background, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
-    settings_background = pygame.image.load("settingsbackground.png").convert()
+    settings_background = pygame.image.load("assets/images/settingsbackground.png").convert()
     settings_background = pygame.transform.scale(settings_background, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
     font = pygame.font.SysFont(None, 36)
@@ -91,13 +91,13 @@ def main():
     game_over = False
     invincible_timer = 0
 
-    shoot_sound = pygame.mixer.Sound("shoot.wav")
-    explosion_sound = pygame.mixer.Sound("explosion.wav")
+    shoot_sound = pygame.mixer.Sound("assets/sounds/shoot.wav")
+    explosion_sound = pygame.mixer.Sound("assets/sounds/explosion.wav")
 
     shoot_sound.set_volume(0.3)
     explosion_sound.set_volume(0.5)
 
-    pygame.mixer.music.load("background.wav")
+    pygame.mixer.music.load("assets/sounds/background.wav")
     pygame.mixer.music.set_volume(0.2)
     pygame.mixer.music.play(-1)
 

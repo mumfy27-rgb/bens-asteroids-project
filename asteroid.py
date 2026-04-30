@@ -5,7 +5,11 @@ from circleshape import CircleShape
 from constants import ASTEROID_MIN_RADIUS, SCREEN_WIDTH, SCREEN_HEIGHT
 from logger import log_event 
 
-ASTEROID_IMAGES = ["ast1.png", "ast2.png", "ast3.png"]
+ASTEROID_IMAGES = [
+    "assets/images/ast1.png",
+    "assets/images/ast2.png",
+    "assets/images/ast3.png"
+]
 
 
 class Asteroid(CircleShape):
@@ -26,7 +30,7 @@ class Asteroid(CircleShape):
             (size, size)
         )
 
-        # 🔄 Rotation setup
+        # 🔄 Rotation
         self.rotation = random.randint(0, 360)
         self.rotation_speed = random.uniform(-90, 90)
 
