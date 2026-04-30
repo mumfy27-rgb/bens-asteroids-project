@@ -8,7 +8,18 @@ class Shot(CircleShape):
         super().__init__(x, y, SHOT_RADIUS)
 
     def draw(self, screen):
-        pygame.draw.circle(screen, (255, 255, 0), self.position, self.radius)
+        # skip if not moving
+        if self.velocity.length() == 0:
+            return
+
+        # direction of the laser
+        direction = self.velocity.normalize()
+
+        start_pos = self.position
+        end_pos = self.position - direction * 12  # length of laser
+
+        # draw laser beam
+        pygame.draw.line(screen, (255, 50, 50), start_pos, end_pos, 3)
 
     def update(self, dt):
         self.position += self.velocity * dt
