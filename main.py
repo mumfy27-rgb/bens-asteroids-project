@@ -31,6 +31,9 @@ def main():
 
     shoot_sound.set_volume(0.3)
     explosion_sound.set_volume(0.5)
+    pygame.mixer.music.load("background.wav")
+    pygame.mixer.music.set_volume(0.2)
+    pygame.mixer.music.play(-1)
 
     was_shooting = False
 
