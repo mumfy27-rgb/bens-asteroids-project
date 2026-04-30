@@ -41,8 +41,15 @@ def main():
 
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
+    # -------- BACKGROUNDS --------
     background = pygame.image.load("background.png").convert()
     background = pygame.transform.scale(background, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
+    menu_background = pygame.image.load("menubackground.png").convert()
+    menu_background = pygame.transform.scale(menu_background, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
+    settings_background = pygame.image.load("settingsbackground.png").convert()
+    settings_background = pygame.transform.scale(settings_background, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
     font = pygame.font.SysFont(None, 36)
 
@@ -51,6 +58,7 @@ def main():
     game_over = False
     invincible_timer = 0
 
+    # -------- SOUNDS --------
     shoot_sound = pygame.mixer.Sound("shoot.wav")
     explosion_sound = pygame.mixer.Sound("explosion.wav")
 
@@ -63,6 +71,7 @@ def main():
 
     was_shooting = False
 
+    # -------- GROUPS --------
     updatable = pygame.sprite.Group()
     drawable = pygame.sprite.Group()
     asteroids = pygame.sprite.Group()
@@ -97,6 +106,7 @@ def main():
 
     print(f"Starting Asteroids with pygame version: {pygame.version.ver}")
 
+    # -------- GAME LOOP --------
     while True:
         log_state()
 
@@ -106,7 +116,7 @@ def main():
 
             if event.type == pygame.KEYDOWN:
 
-                # ---------- MENU ----------
+                # -------- MENU --------
                 if game_state == MENU:
                     if event.key == pygame.K_UP:
                         menu_index -= 1
@@ -116,7 +126,7 @@ def main():
 
                     menu_index %= len(menu_options)
 
-                    if event.key == pygame.K_RETURN:
+                    if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
                         if menu_options[menu_index] == "Start Game":
                             game_state = PLAYING
 
@@ -126,7 +136,7 @@ def main():
                         elif menu_options[menu_index] == "Quit":
                             return
 
-                # ---------- SETTINGS ----------
+                # -------- SETTINGS --------
                 elif game_state == SETTINGS:
                     if event.key == pygame.K_UP:
                         settings_index -= 1
@@ -136,7 +146,7 @@ def main():
 
                     settings_index %= 3
 
-                    if event.key == pygame.K_RETURN:
+                    if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
                         if settings_index == 0:
                             background_music_on = not background_music_on
 
@@ -151,20 +161,29 @@ def main():
                         elif settings_index == 2:
                             game_state = MENU
 
-                # ---------- GAME OVER RESET ----------
+                # -------- RESET --------
                 elif game_state == PLAYING:
                     if event.key == pygame.K_SPACE and game_over:
                         reset_game()
+                        game_state = MENU
 
         keys = pygame.key.get_pressed()
 
-        screen.blit(background, (0, 0))
+        # -------- DRAW BACKGROUND --------
+        if game_state == MENU:
+            screen.blit(menu_background, (0, 0))
 
-        # ---------- DRAW MENU ----------
+        elif game_state == SETTINGS:
+            screen.blit(settings_background, (0, 0))
+
+        elif game_state == PLAYING:
+            screen.blit(background, (0, 0))
+
+        # -------- MENU DRAW --------
         if game_state == MENU:
             draw_menu(screen, menu_options, menu_index, font)
 
-        # ---------- DRAW SETTINGS ----------
+        # -------- SETTINGS DRAW --------
         elif game_state == SETTINGS:
             settings_options = [
                 f"Background Music: {'ON' if background_music_on else 'OFF'}",
@@ -174,7 +193,7 @@ def main():
 
             draw_menu(screen, settings_options, settings_index, font)
 
-        # ---------- PLAY GAME ----------
+        # -------- GAME --------
         elif game_state == PLAYING:
 
             if keys[pygame.K_SPACE] and not was_shooting and not game_over:
@@ -198,7 +217,6 @@ def main():
                         asteroid.kill()
 
                         if lives <= 0:
-                            print("Game Over")
                             game_over = True
 
                     for shot in shots:
@@ -222,14 +240,13 @@ def main():
 
             if game_over:
                 game_over_text = font.render(
-                    "GAME OVER - Press SPACE to restart",
+                    "GAME OVER - Press SPACE for Menu",
                     True,
                     "white"
                 )
                 screen.blit(game_over_text, (SCREEN_WIDTH / 2 - 250, SCREEN_HEIGHT / 2))
 
         pygame.display.flip()
-
         dt = clock.tick(60) / 1000
 
 
