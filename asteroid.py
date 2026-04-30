@@ -1,34 +1,24 @@
 import pygame
 import random
-import math
 
 from circleshape import CircleShape
 from constants import ASTEROID_MIN_RADIUS
 from logger import log_event 
 
+ASTEROID_IMAGES = ["ast1.png", "ast2.png", "ast3.png"]
+
 
 class Asteroid(CircleShape):
     def __init__(self, x, y, radius):
         super().__init__(x, y, radius)
-        self.points = self.generate_points()
 
-    def generate_points(self):
-        points = []
-        num_points = random.randint(8, 12)
+        image_path = random.choice(ASTEROID_IMAGES)
+        self.image = pygame.image.load(image_path).convert_alpha()
 
-        for i in range(num_points):
-            angle = (2 * math.pi / num_points) * i
-
-            # random "jaggedness"
-            offset = random.uniform(0.7, 1.3)
-            r = self.radius * offset
-
-            x = math.cos(angle) * r
-            y = math.sin(angle) * r
-
-            points.append((x, y))
-
-        return points
+        self.image = pygame.transform.scale(
+            self.image,
+            (int(radius * 2), int(radius * 2))
+        )
 
     def split(self):
         self.kill()
@@ -52,26 +42,8 @@ class Asteroid(CircleShape):
         asteroid_two.velocity = velocity_two * 1.2
 
     def draw(self, screen):
-        transformed_points = []
-
-        for point in self.points:
-            x = int(point[0] + self.position.x)
-            y = int(point[1] + self.position.y)
-            transformed_points.append((x, y))
-
-        pygame.draw.polygon(
-            screen,
-            (200, 200, 200),
-            transformed_points
-        )
-
-        # Optional outline (looks nicer)
-        pygame.draw.polygon(
-            screen,
-            (255, 255, 255),
-            transformed_points,
-            2
-        )
+        rect = self.image.get_rect(center=self.position)
+        screen.blit(self.image, rect)
 
     def update(self, dt):
         self.position += self.velocity * dt

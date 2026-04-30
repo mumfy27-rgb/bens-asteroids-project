@@ -15,49 +15,54 @@ from shot import Shot
 class Player(CircleShape):
     def __init__(self, x, y):
         super().__init__(x, y, PLAYER_RADIUS)
+
         self.rotation = 0
         self.shoot_timer = 0
 
         # 🚀 Load spaceship image
         self.image = pygame.image.load("ship.png").convert_alpha()
-        self.image = pygame.transform.scale(self.image, (50, 50))
+
+        # 🔧 Scale ship bigger
+        scale = 3.0
+        size = int(50 * scale)
+        self.image = pygame.transform.scale(self.image, (size, size))
 
     def shoot(self):
         if self.shoot_timer > 0:
             return
 
-        shot = Shot(self.position.x, self.position.y)
-        shot.velocity = pygame.Vector2(0, -1).rotate(self.rotation) * PLAYER_SHOOT_SPEED
+        # 🔫 FIXED direction (forward instead of backward)
+        direction = pygame.Vector2(0, -1).rotate(self.rotation)
+
+        # spawn at the front of the ship
+        spawn_pos = self.position + direction * (self.radius + 60)
+
+        shot = Shot(spawn_pos.x, spawn_pos.y)
+        shot.velocity = direction * PLAYER_SHOOT_SPEED
 
         self.shoot_timer = PLAYER_SHOOT_COOLDOWN_SECONDS
 
-    def rotate(self, dt):
-        self.rotation += PLAYER_TURN_SPEED * dt
-
     def update(self, dt):
-        if self.shoot_timer > 0:
-            self.shoot_timer -= dt
-
         keys = pygame.key.get_pressed()
 
         if keys[pygame.K_a]:
-            self.rotate(-dt)
+            self.rotation -= PLAYER_TURN_SPEED * dt
         if keys[pygame.K_d]:
-            self.rotate(dt)
+            self.rotation += PLAYER_TURN_SPEED * dt
         if keys[pygame.K_w]:
-            self.move(dt)
+            direction = pygame.Vector2(0, 1).rotate(self.rotation)
+            self.position += direction * PLAYER_SPEED * dt
         if keys[pygame.K_s]:
-            self.move(-dt)
+            direction = pygame.Vector2(0, 1).rotate(self.rotation)
+            self.position -= direction * PLAYER_SPEED * dt
 
         if keys[pygame.K_SPACE]:
             self.shoot()
 
-    def move(self, dt):
-        direction = pygame.Vector2(0, -1).rotate(self.rotation)
-        self.position += direction * PLAYER_SPEED * dt
+        if self.shoot_timer > 0:
+            self.shoot_timer -= dt
 
     def draw(self, screen):
-        # 🔄 Rotate and draw the ship
         rotated_image = pygame.transform.rotate(self.image, -self.rotation)
         rect = rotated_image.get_rect(center=self.position)
         screen.blit(rotated_image, rect)

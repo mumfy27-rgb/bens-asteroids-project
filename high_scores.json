@@ -8,7 +8,19 @@
         "score": 4200
     },
     {
+        "name": "SDRF",
+        "score": 3900
+    },
+    {
+        "name": "FWEF",
+        "score": 3100
+    },
+    {
         "name": "HEBB",
+        "score": 2600
+    },
+    {
+        "name": "ASDF",
         "score": 2600
     },
     {
@@ -26,9 +38,5 @@
     {
         "name": "BENU",
         "score": 1300
-    },
-    {
-        "name": "JVJG",
-        "score": 1200
     }
 ]
