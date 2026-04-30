@@ -8,6 +8,10 @@
         "score": 4200
     },
     {
+        "name": "HEBB",
+        "score": 2600
+    },
+    {
         "name": "DDED",
         "score": 2400
     },
@@ -22,5 +26,9 @@
     {
         "name": "BENU",
         "score": 1300
+    },
+    {
+        "name": "JVJG",
+        "score": 1200
     }
 ]
