@@ -2,7 +2,7 @@ import os
 os.environ["SDL_AUDIODRIVER"] = "pulse"
 
 import pygame
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT, BACKGROUND_COLOR
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT
 from logger import log_state, log_event
 from player import Player
 from asteroid import Asteroid
@@ -19,6 +19,10 @@ def main():
 
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
+    # ✅ LOAD BACKGROUND (fixed indentation)
+    background = pygame.image.load("background.png").convert()
+    background = pygame.transform.scale(background, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
     font = pygame.font.SysFont(None, 36)
     score = 0
     lives = 3
@@ -31,6 +35,7 @@ def main():
 
     shoot_sound.set_volume(0.3)
     explosion_sound.set_volume(0.5)
+
     pygame.mixer.music.load("background.wav")
     pygame.mixer.music.set_volume(0.2)
     pygame.mixer.music.play(-1)
@@ -90,7 +95,8 @@ def main():
 
         was_shooting = keys[pygame.K_SPACE]
 
-        screen.fill(BACKGROUND_COLOR)
+        # ✅ DRAW BACKGROUND (fixed)
+        screen.blit(background, (0, 0))
 
         if not game_over:
             updatable.update(dt)
@@ -112,7 +118,7 @@ def main():
 
                 for shot in shots:
                     if asteroid.collides_with(shot):
-                        explosion_sound.play()  # 🔊 Explosion
+                        explosion_sound.play()
                         log_event("asteroid_shot")
                         score += 100
                         asteroid.split()
