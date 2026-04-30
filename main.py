@@ -90,7 +90,7 @@ def main():
 
         was_shooting = keys[pygame.K_SPACE]
 
-        screen.fill("black")
+        screen.fill((10, 10, 20))
 
         if not game_over:
             updatable.update(dt)

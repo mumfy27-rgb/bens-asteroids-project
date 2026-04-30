@@ -63,4 +63,4 @@ class Player(CircleShape):
         self.position += direction * PLAYER_SPEED * dt
 
     def draw(self, screen):
-        pygame.draw.polygon(screen, "white", self.triangle(), LINE_WIDTH)
+        pygame.draw.polygon(screen, (0, 200, 255), self.triangle(), LINE_WIDTH)
