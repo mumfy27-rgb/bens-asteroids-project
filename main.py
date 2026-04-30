@@ -22,6 +22,27 @@ def main():
     font = pygame.font.SysFont(None, 36)
     score = 0
     lives = 3
+    game_over = False
+    invincible_timer = 0
+
+    def reset_game():
+        nonlocal score, lives, game_over, invincible_timer
+
+        score = 0
+        lives = 3
+        game_over = False
+        invincible_timer = 0
+
+        player.position.x = SCREEN_WIDTH / 2
+        player.position.y = SCREEN_HEIGHT / 2
+
+        for asteroid in asteroids:
+            asteroid.kill()
+
+        for shot in shots:
+            shot.kill()
+
+        AsteroidField()
 
 
     
@@ -60,19 +81,29 @@ def main():
             if event.type == pygame.QUIT:
                 return
             
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and game_over:
+                    reset_game()
+            
 
         screen.fill("black")
         
-        updatable.update(dt)
+        if not game_over:
+            updatable.update(dt)
+        if invincible_timer > 0:
+            invincible_timer -= dt
+
+
         for asteroid in asteroids:
-            if asteroid.collides_with(player):
+            if asteroid.collides_with(player) and invincible_timer <=0:
                 log_event("player_hit")
                 lives -= 1
+                invincible_timer = 2
                 asteroid.kill()
 
                 if lives <= 0:
                     print("Game Over")
-                    sys.exit()
+                    game_over = True
 
 
             for shot in shots:
@@ -90,6 +121,10 @@ def main():
 
         lives_text = font.render(f"Lives: {lives}", True, "white")
         screen.blit(lives_text, (20, 55))
+
+        if game_over:
+            game_over_text = font.render("GAME OVER - Press SPACE to restart", True, "white")
+            screen.blit(game_over_text,(SCREEN_WIDTH / 2 - 250, SCREEN_HEIGHT / 2)) 
         
         
         
