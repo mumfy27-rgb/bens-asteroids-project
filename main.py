@@ -21,6 +21,7 @@ def main():
 
     font = pygame.font.SysFont(None, 36)
     score = 0
+    lives = 3
 
 
     
@@ -66,8 +67,12 @@ def main():
         for asteroid in asteroids:
             if asteroid.collides_with(player):
                 log_event("player_hit")
-                print("Game Over")
-                sys.exit()
+                lives -= 1
+                asteroid.kill()
+
+                if lives <= 0:
+                    print("Game Over")
+                    sys.exit()
 
 
             for shot in shots:
@@ -82,6 +87,9 @@ def main():
         
         score_text = font.render(f"Score: {score}", True, "white")
         screen.blit(score_text,(20, 20))
+
+        lives_text = font.render(f"Lives: {lives}", True, "white")
+        screen.blit(lives_text, (20, 55))
         
         
         
