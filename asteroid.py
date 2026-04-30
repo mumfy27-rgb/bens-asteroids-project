@@ -26,6 +26,10 @@ class Asteroid(CircleShape):
             (size, size)
         )
 
+        # 🔄 Rotation setup
+        self.rotation = random.randint(0, 360)
+        self.rotation_speed = random.uniform(-90, 90)
+
     def split(self):
         self.kill()
 
@@ -48,11 +52,15 @@ class Asteroid(CircleShape):
         asteroid_two.velocity = velocity_two * 1.2
 
     def draw(self, screen):
-        rect = self.image.get_rect(center=self.position)
-        screen.blit(self.image, rect)
+        rotated_image = pygame.transform.rotate(self.image, self.rotation)
+        rect = rotated_image.get_rect(center=self.position)
+        screen.blit(rotated_image, rect)
 
     def update(self, dt):
         self.position += self.velocity * dt
+
+        # 🔄 Apply rotation
+        self.rotation += self.rotation_speed * dt
 
         # 🌍 Screen wrapping
         if self.position.x < 0:
