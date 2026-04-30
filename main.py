@@ -2,7 +2,7 @@ import os
 os.environ["SDL_AUDIODRIVER"] = "pulse"
 
 import pygame
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT, BACKGROUND_COLOR
 from logger import log_state, log_event
 from player import Player
 from asteroid import Asteroid
@@ -90,7 +90,7 @@ def main():
 
         was_shooting = keys[pygame.K_SPACE]
 
-        screen.fill((10, 10, 20))
+        screen.fill(BACKGROUND_COLOR)
 
         if not game_over:
             updatable.update(dt)
