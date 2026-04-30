@@ -20,6 +20,10 @@
         "score": 3900
     },
     {
+        "name": "FDVW",
+        "score": 3500
+    },
+    {
         "name": "FWEF",
         "score": 3100
     },
@@ -34,9 +38,5 @@
     {
         "name": "DDED",
         "score": 2400
-    },
-    {
-        "name": "BHBV",
-        "score": 1700
     }
 ]
